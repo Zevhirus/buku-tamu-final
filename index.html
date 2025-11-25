@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIBUDI DISKOP - Buku Tamu Digital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Poppins',sans-serif;
+      background:linear-gradient(135deg,#0a1f44,#1b3b73);
+      min-height:100vh;
+      padding:20px;
+      position:relative;
+      overflow-x:hidden;
+    }
+    .container{
+      background:rgba(255,255,255,0.95);
+      padding:25px;
+      border-radius:20px;
+      max-width:500px;
+      margin:auto;
+      position:relative;
+      z-index:2;
+    }
+    h1{text-align:center;margin-bottom:6px;}
+    .subtitle{text-align:center;margin-bottom:20px;}
+    form{display:flex;flex-direction:column;gap:15px;}
+    label{font-weight:600;}
+    input,textarea,select{
+      width:100%;padding:12px;border-radius:10px;
+      border:2px solid #d0d7e2;font-size:14px;
+    }
+    button{
+      padding:14px;border:none;border-radius:12px;
+      background:linear-gradient(135deg,#0a1f44,#1b3b73);
+      color:white;font-size:16px;cursor:pointer;
+    }
+    .success,.error{
+      padding:10px;border-radius:10px;margin-top:10px;text-align:center;color:white;
+    }
+    .success{background:#38ef7d;}
+    .error{background:#f45c43;}
+    .watermark{
+      position:fixed;left:50%;bottom:20px;
+      transform:translateX(-50%) rotate(-22deg);
+      font-size:28px;font-weight:700;opacity:0.08;
+      color:#000;pointer-events:none;letter-spacing:4px;
+    }
+    footer{
+      text-align:center;
+      margin-top:30px;
+      padding:15px;
+      background:rgba(255,255,255,0.95);
+      border-radius:15px;
+      max-width:500px;
+      margin:30px auto 0;
+      position:relative;
+      z-index:2;
+    }
+    footer p{
+      font-size:13px;
+      color:#0a1f44;
+      font-weight:600;
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey:"AIzaSyBrXHQINUTCoAB3m2iVJQikkP6Q9850z94",
+      authDomain:"uku-a2eb8.firebaseapp.com",
+      databaseURL:"https://uku-a2eb8-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:"uku-a2eb8",
+      storageBucket:"uku-a2eb8.firebasedatabase.app",
+      messagingSenderId:"1069686721096",
+      appId:"1:1069686721096:web:1cb3cef4f6e112453d667d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.dbRef = ref;
+    window.dbPush = push;
+    window.dbSet = set;
+  </script>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div style="text-align:center;margin-bottom:15px;">
+      <img src="WhatsApp_Image_2025-11-18_at_10.19.11_e59da922-removebg-preview.png" alt="Logo Dinas" style="width:90px;height:auto;">
+    </div>
+
+    <h1>SIBUDI DISKOP</h1>
+    <p class="subtitle">Sistem Buku Tamu Digital Dinas Koperasi & UKM Provinsi Sulawesi Selatan</p>
+
+    <form id="bukuTamuForm">
+      <div><label>Nama Lengkap</label><input name="nama" required></div>
+      <div><label>Instansi / Asal</label><input name="instansi" required></div>
+      <div><label>Tujuan Bidang</label>
+        <select name="tujuan" required>
+          <option value="">-- Pilih Tujuan --</option>
+          <option>SUBAG KESEKRETARIATAN</option>
+          <option>SUBAG PROGRAM</option>
+          <option>SUBAG UMUM</option>
+          <option>SUBAG KEUANGAN</option>
+          <option>BIDANG PENGEMBANGAN</option>
+          <option>BIDANG PEMBERDAYAAN</option>
+        </select>
+      </div>
+      <div><label>Jumlah Tamu</label><input type="number" name="jumlah_tamu" placeholder="Contoh: 3"></div>
+      <div><label>Nomor HP</label><input type="tel" name="nohp" required></div>
+      <div><label>Keperluan</label><textarea name="keperluan" required rows="3"></textarea></div>
+      <div><label>Waktu Kunjungan</label><input type="datetime-local" name="waktukunjungan" readonly></div>
+      <button type="submit">📤 Kirim Data</button>
+    </form>
+
+    <div id="message"></div>
+  </div>
+
+  <div class="watermark">POLITEKNIK STIA LAN MAKASSAR 2025</div>
+
+  <footer>
+    <p>© 2025 - Dikembangkan oleh <strong>POLITEKNIK STIA LAN MAKASSAR</strong></p>
+  </footer>
+
+<script>
+  const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  document.querySelector('input[name="waktukunjungan"]').value = now.toISOString().slice(0,16);
+
+  const form=document.getElementById("bukuTamuForm");
+  const msg=document.getElementById("message");
+
+  form.addEventListener("submit", async(e)=>{
+    e.preventDefault();
+    msg.innerHTML="⏳ Mengirim data...";
+
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    try{
+      const newRef = window.dbPush(window.dbRef(window.db,"bukutamu"));
+      await window.dbSet(newRef,data);
+      msg.innerHTML='<div class="success">✅ Data berhasil disimpan!</div>';
+      form.reset();
+    } catch {
+      msg.innerHTML='<div class="error">❌ Gagal menyimpan data.</div>';
+    }
+  });
+
+  // Shortcut admin
+  document.addEventListener("keydown",e=>{
+    if(e.ctrlKey && e.altKey && e.key.toLowerCase()==='l'){
+      window.location.href="admin.html";
+    }
+  });
+</script>
+
+</body>
+</html>
